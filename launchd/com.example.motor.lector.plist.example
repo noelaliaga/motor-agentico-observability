@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  TEMPLATE. Replace __REPO__ with the absolute path of this repository and
-  __HOME__ with your home directory, save it as
+  TEMPLATE. Replace __REPO__ with the absolute path of this repository,
+  __HOME__ with your home directory and __PYTHON__ with the absolute path of a
+  Python 3.11+ interpreter (not /usr/bin/python3, which is 3.9 on macOS), save it as
   ~/Library/LaunchAgents/com.example.motor.lector.plist and load it with
   `launchctl load ~/Library/LaunchAgents/com.example.motor.lector.plist`.
 
@@ -14,7 +15,7 @@
   <string>com.example.motor.lector</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/bin/python3</string>
+    <string>__PYTHON__</string>
     <string>__REPO__/lector/lector.py</string>
     <string>--bucle</string>
   </array>

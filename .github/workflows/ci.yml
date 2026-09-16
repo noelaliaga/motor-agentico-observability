@@ -69,7 +69,9 @@ jobs:
             test "$code" = "200"
           done
           curl -fsS http://127.0.0.1:8797/actividad | grep -q "acme-webshop"
-      - name: non-loopback Host is refused
-        run: test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: example.com' http://127.0.0.1:8797/)" = "403"
+      - name: non-loopback Host and forwarded requests are refused
+        run: |
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: example.com' http://127.0.0.1:8797/)" = "403"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-For: 203.0.113.7' http://127.0.0.1:8797/)" = "403"
       - if: failure()
         run: cat demo.log
