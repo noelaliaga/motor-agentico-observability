@@ -71,8 +71,26 @@ test("an INSERT through the web layer is rejected by SQLite", () => {
   assert.match(avisos.join("\n"), /readonly|read-only|read only/i);
 });
 
-test("DELETE and DROP are rejected too", () => {
-  base.filas("DELETE FROM uso");
-  base.filas("DROP TABLE uso");
+test("DELETE, DROP and CREATE TEMP are rejected too, for being read-only", () => {
+  for (const sql of ["DELETE FROM uso", "DROP TABLE uso", "CREATE TEMP TABLE sonda (x)"]) {
+    const avisos: string[] = [];
+    const original = console.warn;
+    console.warn = (...a: unknown[]) => { avisos.push(a.join(" ")); };
+    try {
+      assert.deepEqual(base.filas(sql), [], sql);
+    } finally {
+      console.warn = original;
+    }
+    assert.match(avisos.join("\n"), /readonly|read-only|read only|query_only/i, sql);
+  }
   assert.equal(cuenta(), 2);
+  const db = new DatabaseSync(ruta, { readOnly: true });
+  const tabla = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='uso'").get();
+  db.close();
+  assert.ok(tabla, "the table must still exist");
+});
+
+test("the connection has query_only switched on", () => {
+  const q = base.fila<Record<string, number>>("PRAGMA query_only");
+  assert.equal(Number(Object.values(q ?? {})[0]), 1);
 });

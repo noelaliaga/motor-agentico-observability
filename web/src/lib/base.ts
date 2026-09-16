@@ -12,13 +12,13 @@ import { join } from "node:path";
  */
 type Fila = Record<string, unknown>;
 interface Sentencia { all(...a: unknown[]): Fila[]; get(...a: unknown[]): Fila | undefined }
-interface Base { prepare(sql: string): Sentencia }
+interface Base { prepare(sql: string): Sentencia; exec(sql: string): void }
 
 function sqlite(): { DatabaseSync: new (r: string, o?: { readOnly?: boolean }) => Base } {
   const m = (process as unknown as {
     getBuiltinModule?: (n: string) => unknown;
   }).getBuiltinModule?.("node:sqlite");
-  if (!m) throw new Error("Este Node no trae node:sqlite. Hace falta Node 22.5 o superior.");
+  if (!m) throw new Error("Este Node no trae node:sqlite sin flags. Hace falta Node 22.15 o superior.");
   return m as { DatabaseSync: new (r: string, o?: { readOnly?: boolean }) => Base };
 }
 
@@ -29,7 +29,13 @@ function sqlite(): { DatabaseSync: new (r: string, o?: { readOnly?: boolean }) =
    hace que SQLite rechace cualquier escritura a nivel de conexión. Aunque
    alguien escribiera un INSERT en esta app, no llegaría a la base.
 
-   `node:sqlite` es nativo en Node 22+. Cero dependencias.
+   Segunda cerradura: `PRAGMA query_only = ON`, y se comprueba que quedó
+   puesto. Un Node que ignorase en silencio la opción `readOnly` (opción
+   desconocida = opción ignorada) seguiría sin poder escribir, y si el pragma
+   no se aplica la conexión no se usa.
+
+   `node:sqlite` es nativo y sin flags desde Node 22.13 (22.15 para los
+   tests). Cero dependencias.
    ───────────────────────────────────────────────────────────────────────── */
 
 // Sin MOTOR_BASE, la base por defecto del lector: `data/motor.sqlite` en la raíz
@@ -41,7 +47,13 @@ let db: Base | null = null;
 function abrir(): Base {
   if (db) return db;
   const { DatabaseSync } = sqlite();
-  db = new DatabaseSync(RUTA, { readOnly: true });
+  const nueva = new DatabaseSync(RUTA, { readOnly: true });
+  nueva.exec("PRAGMA query_only = ON");
+  const q = nueva.prepare("PRAGMA query_only").get();
+  if (!q || Number(Object.values(q)[0]) !== 1) {
+    throw new Error("No se pudo poner la base en solo lectura (PRAGMA query_only).");
+  }
+  db = nueva;
   return db;
 }
 
