@@ -86,13 +86,19 @@ def leer(cx) -> int:
             # RunAtLoad no «va a correr», simplemente existe.
             if not any(k in d for k in ("StartInterval", "StartCalendarInterval", "RunAtLoad")):
                 continue
-            prog = d.get("ProgramArguments") or []
+            # Sólo el ejecutable y cuántos argumentos lleva: los argumentos
+            # de un LaunchAgent a veces incluyen tokens o flags con secretos.
+            prog = [str(x) for x in (d.get("ProgramArguments") or [])]
+            if prog:
+                que = corta(prog[0]) or ""
+                if len(prog) > 1:
+                    que += f" (+{len(prog) - 1} {'argumento' if len(prog) == 2 else 'argumentos'})"
+            else:
+                que = corta(str(d.get("Program", ""))) or ""
             cx.execute(
                 "INSERT OR REPLACE INTO programado VALUES (?,?,?,?,?,?,?)",
                 (f"launchd:{etiqueta}", "launchd", etiqueta, _cuando(d), None,
-                 1 if etiqueta in vivos else 0,
-                 " ".join(corta(str(x)) or "" for x in prog)[:300] if prog
-                 else (corta(str(d.get("Program", ""))) or "")[:300]),
+                 1 if etiqueta in vivos else 0, que[:300]),
             )
             n += 1
 

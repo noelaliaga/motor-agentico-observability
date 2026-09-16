@@ -4,8 +4,12 @@
 #   make demo-datos  only the data part of the demo (no web)
 #   make test        pytest + ruff + web tests + typecheck
 #   make capturas    screenshots of the demo dashboard (needs Chrome and `make demo` running)
+#   make limpiar     delete data/, .pytest_tmp and web/.next
 #
-# The demo NEVER reads your real home: every MOTOR_* variable points inside data/demo.
+# The demo NEVER reads your real home: every source path is set explicitly
+# inside data/demo (a MOTOR_CLAUDE exported in your shell profile would
+# otherwise win over MOTOR_CASA), and demo/comprobar_entorno.py aborts the demo
+# if any resolved path falls outside it.
 
 SHELL := /bin/bash
 PY    ?= python3
@@ -20,18 +24,26 @@ DEMO_HOME := $(DEMO)/home
 # Everything the reader and the web need to look ONLY at the synthetic data.
 export MOTOR_CASA          := $(DEMO_HOME)
 export MOTOR_BASE          := $(DEMO)/motor.sqlite
+export MOTOR_CLAUDE        := $(DEMO_HOME)/.claude
+export MOTOR_CLAUDE_JSON   := $(DEMO_HOME)/.claude.json
+export MOTOR_CODEX         := $(DEMO_HOME)/.codex
+export MOTOR_HERMES        := $(DEMO_HOME)/.hermes
+export MOTOR_OPENCLAW      := $(DEMO_HOME)/.openclaw
+export MOTOR_LAUNCHAGENTS  := $(DEMO_HOME)/Library/LaunchAgents
 export MOTOR_NOTAS         := $(DEMO_HOME)/Notes
 export MOTOR_MCP_JSON      := $(DEMO_HOME)/projects/acme-webshop/.mcp.json
 export MOTOR_CRON_COMANDOS := 0
 export MOTOR_USUARIO       := demo
 export PYTHONDONTWRITEBYTECODE := 1
-unexport MOTOR_SUENO_LEE MOTOR_MULTIVERSO OPENROUTER_API_KEY OPENROUTER_MANAGEMENT_KEY
+unexport MOTOR_SUENO_LEE MOTOR_MULTIVERSO MOTOR_CLAUDE_CLI MOTOR_HERMES_CLI \
+         OPENROUTER_API_KEY OPENROUTER_MANAGEMENT_KEY
 
 .PHONY: demo demo-datos web-build web-start test test-py lint test-web tipos venv capturas limpiar
 
 demo: demo-datos web-build web-start
 
 demo-datos:
+	$(PY) demo/comprobar_entorno.py "$(DEMO)"
 	rm -rf "$(DEMO)"
 	$(PY) demo/generar_home_sintetica.py --casa "$(DEMO_HOME)"
 	$(PY) lector/lector.py
@@ -46,6 +58,7 @@ web-build: web/node_modules
 	cd web && npm run build
 
 web-start:
+	$(PY) demo/comprobar_entorno.py "$(DEMO)"
 	@echo "→ http://127.0.0.1:$(MOTOR_PUERTO)  (Ctrl-C to stop · synthetic data only)"
 	cd web && npm run start
 

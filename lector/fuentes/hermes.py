@@ -15,12 +15,24 @@ tablero de Hermes ni por un fallo propio.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 
 from comun import RUTAS, anotar_salud, corta, solo_lectura
 
 FUENTE = "hermes"
+
+
+def _titulo_opaco(clave: str | None) -> str | None:
+    """
+    La `session_key` de Hermes suele llevar el identificador del canal (un chat
+    de mensajería, por ejemplo). No se enseña: sin `display_name`, la sesión se
+    titula con un hash corto de la clave, estable entre pasadas.
+    """
+    if not clave:
+        return None
+    return "sesión " + hashlib.sha256(str(clave).encode()).hexdigest()[:8]
 
 
 def leer(cx) -> int:
@@ -45,7 +57,7 @@ def leer(cx) -> int:
                        VALUES (?,?,?,?,?,?,?,?)
                        ON CONFLICT(id) DO UPDATE SET
                          fin=excluded.fin, mensajes=excluded.mensajes, modelo=excluded.modelo""",
-                    (sid, FUENTE, ini, fin, canal, modelo, nombre or clave, msgs or 0),
+                    (sid, FUENTE, ini, fin, canal, modelo, nombre or _titulo_opaco(clave), msgs or 0),
                 )
                 n += 1
                 # Si algún día Hermes empieza a rellenar token_count, esto lo

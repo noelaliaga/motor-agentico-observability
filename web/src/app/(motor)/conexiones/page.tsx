@@ -87,8 +87,9 @@ export default function Conexiones() {
         {/* La nota de seguridad va en pantalla, no sólo en el código. */}
         <p className="max-w-[760px] text-[11.5px] leading-relaxed" style={{ color: "var(--texto-3)" }}>
           El motor no abre ningún archivo <span className="dato">.env</span>. De un servidor MCP guarda
-          el comando y <b>cuántas</b> variables de entorno usa: ni sus nombres ni sus valores
-          aparecen en ninguna pantalla. Un panel que puede filtrar una service key por
+          el ejecutable (sin argumentos) o la URL sin query y con los segmentos con pinta de
+          token enmascarados, y <b>cuántas</b> variables de entorno usa: ni sus nombres ni sus
+          valores aparecen en ninguna pantalla. Un panel que puede filtrar una service key por
           descuido no es un panel: es un incidente esperando.
         </p>
       </div>
@@ -98,7 +99,7 @@ export default function Conexiones() {
 
 /* La coletilla de los conectores se repite nueve veces; el pie de la sección
    ya la dice una. Repetirla en cada tarjeta es ruido, no información. */
-const COLETILLA = "conectado desde tu cuenta de Claude";
+const COLETILLA = "conectado alguna vez desde tu cuenta de Claude";
 
 function Ficha({ c }: { c: Conexion }) {
   const marca = marcaConexion(c);
