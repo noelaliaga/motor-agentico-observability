@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TEMPLATE. Replace __REPO__ with the absolute path of this repository and
+  __HOME__ with your home directory, save it as
+  ~/Library/LaunchAgents/com.example.motor.lector.plist and load it with
+  `launchctl load ~/Library/LaunchAgents/com.example.motor.lector.plist`.
+
+  The reader in a loop, restarted if it dies. It only writes to MOTOR_BASE.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.example.motor.lector</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>__REPO__/lector/lector.py</string>
+    <string>--bucle</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>__HOME__</string>
+    <key>MOTOR_BASE</key>
+    <string>__REPO__/data/motor.sqlite</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>__REPO__/data/lector.log</string>
+  <key>StandardErrorPath</key>
+  <string>__REPO__/data/lector.log</string>
+</dict>
+</plist>
