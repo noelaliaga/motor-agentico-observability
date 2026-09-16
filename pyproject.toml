@@ -1,0 +1,41 @@
+[project]
+name = "motor-agentico-observability"
+version = "0.1.0"
+description = "Local, read-only observability for AI coding agents: incremental JSONL→SQLite reader, token-based cost model with dated pricing, and a nightly review that only narrates SQL-computed facts."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+# The reader runs on the standard library only. No runtime dependencies.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Temporary files stay inside the repo (ignored by git), never in the system /tmp.
+addopts = "-q --basetemp=.pytest_tmp"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["lector", "demo", "tests"]
+extend-exclude = ["web", ".venv", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+# The code keeps Spanish identifiers and aligned tables; these rules fight that
+# style without catching bugs.
+ignore = [
+  "E731",   # lambda assignments in small lookup helpers
+  "B905",   # zip() without strict= (Python 3.11 target)
+  "UP017",  # datetime.UTC alias: keep timezone.utc explicit
+]
+
+[tool.ruff.lint.per-file-ignores]
+# sys.path is set before importing the sibling modules, on purpose.
+"lector/*.py" = ["E402"]
+"tests/*.py" = ["E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["comun", "lector", "tarifas", "detectores", "habitos", "conversaciones", "sonar", "fuentes"]

@@ -1,0 +1,28 @@
+# datos: la base y la home sintética se generan, nunca se versionan
+data/
+*.sqlite
+*.sqlite-*
+*.log
+registro/
+
+# entorno
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# web
+web/node_modules/
+web/.next/
+web/tsconfig.tsbuildinfo
+web/next-env.d.ts
+
+.DS_Store
+.pytest_tmp/
+.tmp-test-*/
+web/.tmp-test-*/
+.chrome-capturas*/
+tests/_casa_inexistente/
