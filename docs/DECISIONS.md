@@ -52,12 +52,16 @@ something that worked.
 
 `uso.ref UNIQUE` (the message id) revealed that Claude Code writes **one JSONL
 line per content block**, each carrying the same `usage` object: 6,948 of
-11,286 lines were repeats. The author's previous hand-made calculation summed
-all of them and **inflated spend ×2.3**.
+11,286 lines were repeats (about ×2.6 lines per message). The author's previous
+hand-made calculation summed all of them and its **spend figure came out ×2.3
+too high**. The ×2.3 is the spend overcount, not the line ratio; the original
+notes do not break down why the two ratios differ, so both are quoted as measured.
 
 Nobody would have noticed by looking at the number: an inflated total is just
-as believable as the right one. (Reproduced with synthetic data in
-`tests/test_claude_code.py` and in `make demo`.)
+as believable as the right one. The dedup is tested in
+`tests/test_claude_code.py` and *illustrated* in `make demo`, whose generator
+deliberately writes ~2.3 lines per message; the demo does not independently
+reproduce the real ratio.
 
 ## 7 · Not a single text box that sends anything
 

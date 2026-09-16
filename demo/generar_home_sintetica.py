@@ -114,6 +114,8 @@ class Gen:
         for h in herramientas:
             bloques.append(self.bloque(h))
         # 30% of messages come as 3 lines, 70% as 2 → ~2.3 lines per message.
+        # This is a DESIGN CHOICE that mimics the duplication seen in real
+        # transcripts; the demo illustrates the dedup, it does not discover it.
         partes = 3 if self.r.random() < 0.3 else 2
         for i in range(partes):
             b = bloques[i] if i < len(bloques) else {"type": "text", "text": "…"}
