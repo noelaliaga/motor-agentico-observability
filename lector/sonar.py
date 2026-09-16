@@ -18,15 +18,22 @@ desaparece, el sueño sigue funcionando: se quedaría sin prosa, no sin hallazgo
   python3 lector/sonar.py --seco --guardar   y además los guarda sin redactar
   python3 lector/sonar.py --descartar N      entierra una sugerencia para siempre
 
-NO EJECUTA NADA. Ni un archivo se toca, ni un comando se lanza. Lo único que
-escribe es en su propia tabla.
+NO ACTÚA SOBRE NADA. No toca archivos ajenos y sólo escribe en la base del
+motor. Lo que sí lanza, y conviene saberlo:
+  - la pasada previa del lector, que ejecuta comandos que SÓLO LISTAN
+    (`launchctl list`, `hermes cron list`; se apagan con MOTOR_CRON_COMANDOS=0);
+  - sin --seco, `claude -p` para redactar.
 
 QUÉ SALE DE LA MÁQUINA (y qué no)
-  --seco             nada. Todo es SQL local.
-  sin --seco         los HECHOS de cada hallazgo viajan a Anthropic vía
-                     `claude -p`. Los hechos pueden incluir el inicio de un
-                     prompt tuyo, títulos de notas de memoria y nombres de
-                     proyecto.
+  --seco             nada: sin modelo, y la pasada previa se hace SIN la fuente
+                     de OpenRouter (no hay petición de red).
+  sin --seco         la pasada previa incluye OpenRouter si hay
+                     OPENROUTER_API_KEY, y los HECHOS de cada hallazgo viajan a
+                     Anthropic vía `claude -p`. Los hechos pueden incluir el
+                     inicio de un prompt tuyo, títulos de notas de memoria y
+                     nombres de proyecto. Son texto NO CONFIABLE (sale de tus
+                     transcripciones): el modelo corre sin ninguna herramienta
+                     y su salida sólo se guarda como texto.
   MOTOR_SUENO_LEE=1  además, fragmentos de tus conversaciones de las últimas
                      24 h (apagado por defecto).
 """
@@ -37,7 +44,9 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
+import unicodedata
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -147,15 +156,24 @@ def extraer_json(texto: str) -> list:
     return json.loads(texto[texto.index("["): texto.rindex("]") + 1])
 
 
+# Los hechos incluyen texto que sale de tus transcripciones (inicio de prompts,
+# títulos de notas): es texto no confiable y puede intentar dar órdenes. Por eso
+# el modelo corre sin NINGUNA herramienta y sin nada de tu configuración:
+#   --tools ""               ninguna herramienta integrada (ni las futuras)
+#   --strict-mcp-config      ningún servidor MCP (no se pasa --mcp-config)
+#   --setting-sources ""     ni settings de usuario, ni de proyecto, ni locales
+#                            (así tampoco sus hooks ni sus permisos)
+#   cwd vacío                ningún CLAUDE.md del directorio de trabajo
+# Su salida sólo se guarda como texto; nada la ejecuta.
+FLAGS_SIN_HERRAMIENTAS = ["--tools", "", "--strict-mcp-config", "--setting-sources", ""]
+
+
 def _llamar(prompt: str) -> dict:
-    r = subprocess.run(
-        [MODELO_CLI, "-p", prompt, "--output-format", "json",
-         # Solo lectura de verdad: sin una sola herramienta. No las necesita
-         # —los datos van en el prompt— y así no puede tocar nada aunque quiera.
-         "--allowedTools", "",
-         "--disallowedTools", "Read,Write,Edit,Bash,Glob,Grep,WebFetch,WebSearch,Task,Agent,Skill"],
-        capture_output=True, text=True, timeout=LIMITE_S,
-    )
+    with tempfile.TemporaryDirectory(prefix="motor-sueno-") as vacio:
+        r = subprocess.run(
+            [MODELO_CLI, "-p", prompt, "--output-format", "json", *FLAGS_SIN_HERRAMIENTAS],
+            capture_output=True, text=True, timeout=LIMITE_S, cwd=vacio,
+        )
     if r.returncode != 0:
         raise RuntimeError((r.stderr or r.stdout)[-400:])
     return json.loads(r.stdout)
@@ -209,6 +227,23 @@ Una a tres frases. Si el patrón no se arregla con un prompt, devuelve prompt va
 Nada antes ni después del JSON.""".replace("__USUARIO__", USUARIO)
 
 
+CITA_MINIMA = 12   # una cita de tres letras aparece en cualquier parte
+
+
+def _normal(texto: str) -> str:
+    """Minúsculas, comillas tipográficas fuera y espacios colapsados."""
+    t = unicodedata.normalize("NFKC", texto or "").lower()
+    for c in "\"'«»“”‘’":
+        t = t.replace(c, "")
+    return " ".join(t.split())
+
+
+def cita_literal(cita: str, textos: list[str]) -> bool:
+    """La cita ENTERA tiene que estar en algo que escribió el usuario."""
+    c = _normal(cita)
+    return len(c) >= CITA_MINIMA and any(c in _normal(t) for t in textos)
+
+
 def lee_conversaciones() -> bool:
     """Leer conversaciones manda fragmentos de prompts fuera: sólo si se pide."""
     return os.environ.get("MOTOR_SUENO_LEE") == "1"
@@ -243,10 +278,11 @@ def leer_conversaciones(cx) -> list[dict]:
     fuera = []
     for n in notas[:CUANTAS_LEIDAS]:
         cita = (n.get("cita") or "").strip().strip('"«»')
-        # LA REGLA: si la cita no aparece de verdad en lo que escribió, fuera.
-        # Un modelo que parafrasea y lo llama cita es exactamente el fallo que
-        # este motor existe para no cometer.
-        if not cita or not any(cita[:60].lower() in x["tuyo"].lower() for x in xs):
+        # LA REGLA: si la cita ENTERA no aparece de verdad en lo que escribió,
+        # fuera. Un modelo que parafrasea (o que empieza citando y sigue
+        # inventando) es exactamente el fallo que este motor existe para no
+        # cometer.
+        if not cita_literal(cita, [x["tuyo"] for x in xs]):
             print(f"[sueño] descartada por cita inventada: {n.get('titulo','?')[:60]}")
             continue
         fuera.append({
@@ -270,9 +306,11 @@ def sonar(seco=False, guardar=False, cx=None) -> int:
     # se enteró: el sueño siguió escribiendo notas de aspecto perfectamente
     # normal sobre datos congelados de cinco días atrás. Una pasada aquí cuesta
     # ~2 s sobre una tarea de minutos y quita esa dependencia silenciosa.
+    # En --seco la pasada va sin OpenRouter: «seco» significa que nada sale.
+    fuentes = [f for f in lector.FUENTES if f != "openrouter"] if seco else None
     try:
         lector.preparar(cx)
-        lector.pasada(cx)
+        lector.pasada(cx, fuentes=fuentes)
     except Exception as e:
         # Que falle la ingesta no debe costarte la nota diaria: se avisa en el
         # log —esto antes no avisaba de nada— y se sueña con lo que ya hubiera.

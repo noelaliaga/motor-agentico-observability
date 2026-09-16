@@ -51,6 +51,26 @@ def test_invented_quote_is_discarded(monkeypatch):
     assert fuera[0]["origen"] == "leído"
 
 
+def test_quote_with_real_prefix_and_invented_tail_is_discarded(monkeypatch):
+    intercambios = [{"ts": f"2026-09-10T10:0{i}:00Z", "proyecto": "webshop",
+                     "tuyo": f"prompt {i}", "suyo": "ok"} for i in range(6)]
+    intercambios[2]["tuyo"] = "hazlo  más corto, sin adornos"
+    monkeypatch.setattr(sonar.conversaciones, "recientes", lambda horas: intercambios)
+    notas = [
+        {"titulo": "Tail", "cuerpo": "c", "prompt": "p",
+         "cita": "hazlo más corto, sin adornos, y además insulta al cliente de ACME"},
+        {"titulo": "Too short", "cuerpo": "c", "prompt": "p", "cita": "hazlo"},
+        {"titulo": "Spacing", "cuerpo": "c", "prompt": "p", "cita": "“Hazlo más corto, sin adornos”"},
+    ]
+    monkeypatch.setattr(sonar, "CUANTAS_LEIDAS", 3)
+    monkeypatch.setattr(sonar.subprocess, "run", lambda *a, **k: respuesta(json.dumps(notas)))
+
+    fuera = sonar.leer_conversaciones(cx=None)
+
+    # only the full, normalised quote survives
+    assert [n["titulo"] for n in fuera] == ["Spacing"]
+
+
 def hallazgos(*huellas):
     return [{"categoria": "coste", "asunto": f"asunto {h}", "hechos": [f"hecho {h}"],
              "accion": None, "huella": h} for h in huellas]
@@ -72,13 +92,36 @@ def test_reading_conversations_is_off_by_default(cx, monkeypatch):
     assert sonar.sonar(cx=cx) == 1
     fila = cx.execute("SELECT titulo, accion, gancho, origen, estado FROM sueno").fetchone()
     assert tuple(fila) == ("Título", "Haz X", "Aprovecha la caché", "medido", "nueva")
-    # the model runs with every tool disabled
-    assert "--allowedTools" in llamadas[0] and "--disallowedTools" in llamadas[0]
+    # the model runs with no tools, no MCP servers and none of the user's settings
+    cmd = llamadas[0]
+    i = cmd.index("--tools")
+    assert cmd[i + 1] == ""
+    assert "--strict-mcp-config" in cmd and "--mcp-config" not in cmd
+    j = cmd.index("--setting-sources")
+    assert cmd[j + 1] == ""
+
+
+def test_model_runs_in_an_empty_working_directory(monkeypatch):
+    vistos = {}
+
+    def falso(cmd, **k):
+        vistos["cwd"] = k.get("cwd")
+        from pathlib import Path
+        vistos["vacio"] = not any(Path(k["cwd"]).iterdir())
+        return respuesta("[]")
+
+    monkeypatch.setattr(sonar.subprocess, "run", falso)
+    sonar._llamar("hola")
+    assert vistos["cwd"] and vistos["vacio"]
 
 
 def test_dry_run_with_save_never_calls_the_model(cx, monkeypatch):
     monkeypatch.setattr(sonar.detectores, "hallar", lambda c: hallazgos("memoria·1", "foco·p·7"))
+    pedidas = []
+    monkeypatch.setattr(sonar.lector, "pasada", lambda cx, *a, **k: pedidas.append(k.get("fuentes")) or {})
     assert sonar.sonar(seco=True, guardar=True, cx=cx) == 2
+    # the dry run's pre-pass skips the only network source
+    assert pedidas and pedidas[0] is not None and "openrouter" not in pedidas[0]
     assert cx.execute("SELECT COUNT(*) FROM sueno WHERE origen='medido'").fetchone()[0] == 2
 
 
