@@ -1,0 +1,75 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: pytest
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      # next build generates next-env.d.ts and .next/types, which tsc reads.
+      - run: npm run build
+      - run: npm run tipos
+      - run: npm test
+
+  demo:
+    runs-on: ubuntu-latest
+    needs: [python, web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: make demo (synthetic data, web in background)
+        run: |
+          make demo > demo.log 2>&1 &
+          for i in $(seq 1 120); do
+            curl -fsS -o /dev/null http://127.0.0.1:8797/ && break
+            sleep 2
+          done
+      - name: three screens answer with synthetic data
+        run: |
+          set -e
+          for ruta in "" dinero actividad; do
+            code=$(curl -s -o page.html -w "%{http_code}" "http://127.0.0.1:8797/$ruta")
+            echo "/$ruta → $code"
+            test "$code" = "200"
+          done
+          curl -fsS http://127.0.0.1:8797/actividad | grep -q "acme-webshop"
+      - name: non-loopback Host is refused
+        run: test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: example.com' http://127.0.0.1:8797/)" = "403"
+      - if: failure()
+        run: cat demo.log
