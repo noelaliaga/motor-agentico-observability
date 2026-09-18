@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p ${MOTOR_PUERTO:-8796} -H 127.0.0.1",
+    "dev": "next dev -p ${MOTOR_PORT:-8796} -H 127.0.0.1",
     "build": "next build",
-    "start": "next start -p ${MOTOR_PUERTO:-8796} -H 127.0.0.1",
-    "tipos": "tsc --noEmit --incremental false",
+    "start": "next start -p ${MOTOR_PORT:-8796} -H 127.0.0.1",
+    "typecheck": "tsc --noEmit --incremental false",
     "test": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --test tests/*.test.ts"
   },
   "dependencies": {

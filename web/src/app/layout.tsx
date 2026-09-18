@@ -3,12 +3,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Motor Agéntico",
-  description: "Observabilidad local y de solo lectura del uso y el coste de agentes de IA.",
+  description: "Local, read-only observability of the usage and cost of AI agents.",
 };
 
-export default function RaizLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );

@@ -1,19 +1,19 @@
 import type { NextConfig } from "next";
 
 /**
- * El motor NUNCA se despliega. Tiene delante tus transcripciones y tus prompts,
- * y no tiene autenticación por diseño. Vive en 127.0.0.1 y ahí se queda:
- * `-H 127.0.0.1` en los scripts y `src/proxy.ts` responde 403 a cualquier Host
- * que no sea loopback.
+ * The motor is NEVER deployed. It has your transcripts and your prompts in
+ * front of it, and it has no authentication by design. It lives on 127.0.0.1
+ * and stays there: `-H 127.0.0.1` in the scripts and `src/proxy.ts` answers
+ * 403 to any Host that is not loopback.
  */
 const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: false },
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   /**
-   * El disco de Next en la esquina inferior izquierda.
+   * Next's disc in the bottom-left corner.
    *
-   * Cae justo encima del pie de la barra lateral y tapaba su aviso en todas las
-   * rutas. No es un fallo de la barra; es una pieza del andamio metida en la foto.
+   * It lands right on top of the sidebar's footer and covered its notice on
+   * every route. It is not a sidebar bug; it is a piece of scaffolding in the picture.
    */
   devIndicators: false,
 };

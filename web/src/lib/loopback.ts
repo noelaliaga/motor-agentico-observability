@@ -6,28 +6,28 @@
  * header — is not loopback. Kept free of Next imports so it can be unit-tested
  * with plain `node --test`.
  */
-export function esLoopback(host: string | null | undefined): boolean {
+export function isLoopback(host: string | null | undefined): boolean {
   if (!host) return false;
   const h = host.trim().toLowerCase();
-  let nombre: string;
+  let name: string;
   if (h.startsWith("[")) {
-    const fin = h.indexOf("]");
-    if (fin < 0) return false;
-    nombre = h.slice(1, fin);
-    const resto = h.slice(fin + 1);
-    if (resto && !/^:\d+$/.test(resto)) return false;
+    const end = h.indexOf("]");
+    if (end < 0) return false;
+    name = h.slice(1, end);
+    const rest = h.slice(end + 1);
+    if (rest && !/^:\d+$/.test(rest)) return false;
   } else {
-    const partes = h.split(":");
-    if (partes.length > 2) return false;
-    if (partes.length === 2 && !/^\d+$/.test(partes[1])) return false;
-    nombre = partes[0];
+    const parts = h.split(":");
+    if (parts.length > 2) return false;
+    if (parts.length === 2 && !/^\d+$/.test(parts[1])) return false;
+    name = parts[0];
   }
-  if (nombre === "localhost" || nombre === "::1") return true;
-  return /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(nombre);
+  if (name === "localhost" || name === "::1") return true;
+  return /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(name);
 }
 
 /** Is this client address (from X-Forwarded-For, X-Real-IP, Forwarded `for=`) loopback? */
-export function ipLoopback(ip: string): boolean {
+export function isLoopbackIp(ip: string): boolean {
   let x = ip.trim().toLowerCase().replace(/^"|"$/g, "");
   if (x.startsWith("[")) x = x.slice(1, x.indexOf("]") >= 0 ? x.indexOf("]") : undefined);
   else if (/^\d+\.\d+\.\d+\.\d+:\d+$/.test(x)) x = x.split(":")[0];
@@ -49,22 +49,22 @@ export function ipLoopback(ip: string): boolean {
  * headers, or a LAN client that forges `Host: localhost` against a server
  * bound to 0.0.0.0, still gets in. The real boundary is binding to 127.0.0.1.
  */
-export function peticionLocal(cabeceras: { get(nombre: string): string | null }): boolean {
-  if (!esLoopback(cabeceras.get("host"))) return false;
-  const xfh = cabeceras.get("x-forwarded-host");
-  if (xfh && !xfh.split(",").every((h) => esLoopback(h))) return false;
+export function isLocalRequest(headers: { get(name: string): string | null }): boolean {
+  if (!isLoopback(headers.get("host"))) return false;
+  const xfh = headers.get("x-forwarded-host");
+  if (xfh && !xfh.split(",").every((h) => isLoopback(h))) return false;
   for (const c of ["x-forwarded-for", "x-real-ip"]) {
-    const v = cabeceras.get(c);
-    if (v && !v.split(",").every((ip) => ipLoopback(ip))) return false;
+    const v = headers.get(c);
+    if (v && !v.split(",").every((ip) => isLoopbackIp(ip))) return false;
   }
-  const fwd = cabeceras.get("forwarded");
+  const fwd = headers.get("forwarded");
   if (fwd) {
-    for (const parte of fwd.split(/[,;]/)) {
-      const [k, ...resto] = parte.split("=");
-      const clave = k.trim().toLowerCase();
-      const valor = resto.join("=");
-      if (clave === "for" && !ipLoopback(valor)) return false;
-      if (clave === "host" && !esLoopback(valor.replace(/"/g, ""))) return false;
+    for (const part of fwd.split(/[,;]/)) {
+      const [k, ...rest] = part.split("=");
+      const key = k.trim().toLowerCase();
+      const value = rest.join("=");
+      if (key === "for" && !isLoopbackIp(value)) return false;
+      if (key === "host" && !isLoopback(value.replace(/"/g, ""))) return false;
     }
   }
   return true;

@@ -1,216 +1,216 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   El motor agéntico.
+   The agentic motor.
 
-   UN SOLO ACENTO: el cian #22D3EE. La estética
-   ámbar de las capturas de referencia era su composición, no su color — de
-   ahí se toman los corchetes en las esquinas, los micro-rótulos en mono y la
-   cabecera de terminal; el color es propio.
+   ONE SINGLE ACCENT: cyan #22D3EE. The amber look of the reference
+   screenshots was their composition, not their colour: from them come the
+   corner brackets, the mono micro-labels and the terminal header; the colour
+   is our own.
 
-   El violeta significa una cosa y sólo una: algo está EJECUTANDO. Por eso el
-   sueño va en violeta — es lo único de aquí que piensa.
+   Violet means one thing and one thing only: something is RUNNING. That is
+   why the nightly review is violet: it is the only thing here that thinks.
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* fondos, del pozo hacia arriba */
-  --pozo:      #05070A;
-  --suelo:     #07090B;
-  --carta:     #0C1116;
-  --carta-alta:#111820;
+  /* backgrounds, from the pit upwards */
+  --pit:       #05070A;
+  --floor:     #07090B;
+  --card:      #0C1116;
+  --card-high: #111820;
 
-  --borde:      rgb(255 255 255 / 0.07);
-  --borde-vivo: rgb(34 211 238 / 0.28);
+  --border:      rgb(255 255 255 / 0.07);
+  --border-live: rgb(34 211 238 / 0.28);
 
-  /* el acento: uno solo */
-  --ambar:     #22D3EE;   /* el nombre se queda; el color es el de la casa */
-  --ambar-alto:#38BDF8;
-  --ambar-humo:#123A45;
+  /* the accent: only one */
+  --amber:       #22D3EE;   /* the name stays; the colour is the house one */
+  --amber-high:  #38BDF8;
+  --amber-smoke: #123A45;
 
-  /* los que significan algo concreto */
-  --gasto:     #FBBF24;   /* el dinero que se va */
-  --ahorro:    #34D399;   /* lo que se gana */
-  --alerta:    #FB7185;
-  --sueno:     #A78BFA;   /* ejecutando · y el sueño, que es lo único que piensa */
+  /* the ones that mean something specific */
+  --spend:     #FBBF24;   /* the money that goes out */
+  --saving:    #34D399;   /* what is gained */
+  --alert:     #FB7185;
+  --review:    #A78BFA;   /* running · and the nightly review, the only thing that thinks */
 
-  --texto:   #F3F5F7;
-  --texto-2: #93A3B0;
-  --texto-3: #6E7D8A;
+  --text:   #F3F5F7;
+  --text-2: #93A3B0;
+  --text-3: #6E7D8A;
 
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
-  --fuente: ui-sans-serif, -apple-system, "SF Pro Text", Inter, sans-serif;
+  --font: ui-sans-serif, -apple-system, "SF Pro Text", Inter, sans-serif;
 }
 
-html, body { background: var(--pozo); color: var(--texto); }
-body { font-family: var(--fuente); -webkit-font-smoothing: antialiased; }
-* { border-color: var(--borde); }
+html, body { background: var(--pit); color: var(--text); }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
+* { border-color: var(--border); }
 
-/* ── el rótulo de la casa: mono, versal, con dos barras delante ───────── */
-.rotulo {
+/* ── the house label: mono, small caps, with two slashes in front ─────── */
+.label {
   font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
-  text-transform: uppercase; color: var(--texto-3);
+  text-transform: uppercase; color: var(--text-3);
 }
-.rotulo-vivo { color: var(--ambar); }
+.label-live { color: var(--amber); }
 
-.cifra { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.dato  { font-family: var(--mono); font-size: 11.5px; }
+.figure { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.datum  { font-family: var(--mono); font-size: 11.5px; }
 
-/* ── la carta con corchetes en las esquinas ───────────────────────────── */
-.carta {
-  position: relative; background: var(--carta);
-  border: 1px solid var(--borde); border-radius: 4px;
+/* ── the card with brackets in the corners ────────────────────────────── */
+.card {
+  position: relative; background: var(--card);
+  border: 1px solid var(--border); border-radius: 4px;
 }
-.carta-marco::before, .carta-marco::after,
-.carta-marco > .esq::before, .carta-marco > .esq::after {
+.card-frame::before, .card-frame::after,
+.card-frame > .corner::before, .card-frame > .corner::after {
   content: ""; position: absolute; width: 13px; height: 13px;
-  border-color: var(--ambar); opacity: .55; pointer-events: none;
+  border-color: var(--amber); opacity: .55; pointer-events: none;
 }
-.carta-marco::before { top: -1px; left: -1px;  border-top: 1.5px solid; border-left: 1.5px solid; }
-.carta-marco::after  { top: -1px; right: -1px; border-top: 1.5px solid; border-right: 1.5px solid; }
-.carta-marco > .esq::before { bottom: -1px; left: -1px;  border-bottom: 1.5px solid; border-left: 1.5px solid; }
-.carta-marco > .esq::after  { bottom: -1px; right: -1px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+.card-frame::before { top: -1px; left: -1px;  border-top: 1.5px solid; border-left: 1.5px solid; }
+.card-frame::after  { top: -1px; right: -1px; border-top: 1.5px solid; border-right: 1.5px solid; }
+.card-frame > .corner::before { bottom: -1px; left: -1px;  border-bottom: 1.5px solid; border-left: 1.5px solid; }
+.card-frame > .corner::after  { bottom: -1px; right: -1px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
 
-/* rejilla de puntos: sólo dentro de las cartas con gráfico */
-.rejilla {
+/* dot grid: only inside the cards with a chart */
+.dot-grid {
   background-image: radial-gradient(circle, rgb(255 255 255 / .06) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
-/* ── el punto que late, para lo que está vivo de verdad ───────────────── */
-.late { position: relative; display: inline-flex; width: 7px; height: 7px; }
-.late i {
+/* ── the beating dot, for what is really alive ────────────────────────── */
+.beat { position: relative; display: inline-flex; width: 7px; height: 7px; }
+.beat i {
   position: absolute; inset: 0; border-radius: 999px; background: currentColor;
 }
-.late::after {
+.beat::after {
   content: ""; position: absolute; inset: -3px; border-radius: 999px;
-  background: currentColor; opacity: .28; animation: latido 2.4s ease-out infinite;
+  background: currentColor; opacity: .28; animation: heartbeat 2.4s ease-out infinite;
 }
-@keyframes latido {
+@keyframes heartbeat {
   0%   { transform: scale(.6); opacity: .35; }
   70%  { transform: scale(1.5); opacity: 0; }
   100% { opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .late::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .beat::after { animation: none; } }
 
-/* barra de proporción, la que va bajo cada modelo */
-.barra { height: 3px; border-radius: 999px; background: rgb(255 255 255 / .07); overflow: hidden; }
-.barra > i { display: block; height: 100%; border-radius: 999px; }
+/* proportion bar, the one under each model */
+.ratio-bar { height: 3px; border-radius: 999px; background: rgb(255 255 255 / .07); overflow: hidden; }
+.ratio-bar > i { display: block; height: 100%; border-radius: 999px; }
 
-::selection { background: var(--ambar); color: #04222A; }
+::selection { background: var(--amber); color: #04222A; }
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-thumb { background: rgb(255 255 255 / .12); border-radius: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
-/* ── el titular de cada pantalla: la cifra manda, el resto acompaña ───── */
-.titular { font-size: 40px; font-weight: 300; letter-spacing: -.025em; line-height: 1.08; }
-.titular b { font-weight: 600; color: var(--texto); }
-.titular span { color: var(--texto-2); }
+/* ── each screen's headline: the figure leads, the rest follows ───────── */
+.headline { font-size: 40px; font-weight: 300; letter-spacing: -.025em; line-height: 1.08; }
+.headline b { font-weight: 600; color: var(--text); }
+.headline span { color: var(--text-2); }
 
-/* ── la tira de cifras con separadores finos ─────────────────────────── */
-.tira { display: grid; border: 1px solid var(--borde); border-radius: 4px; }
-.tira > div { padding: 14px 18px; border-left: 1px solid var(--borde); }
-.tira > div:first-child { border-left: 0; }
+/* ── the strip of figures with thin separators ────────────────────────── */
+.strip { display: grid; border: 1px solid var(--border); border-radius: 4px; }
+.strip > div { padding: 14px 18px; border-left: 1px solid var(--border); }
+.strip > div:first-child { border-left: 0; }
 
-/* ── píldora de filtro ───────────────────────────────────────────────── */
-.pildora {
+/* ── filter pill ─────────────────────────────────────────────────────── */
+.pill {
   display: inline-flex; align-items: center; gap: 7px;
-  border: 1px solid var(--borde); border-radius: 999px;
-  padding: 7px 14px; font-size: 12.5px; color: var(--texto-2);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 14px; font-size: 12.5px; color: var(--text-2);
   transition: border-color .15s, color .15s;
 }
-.pildora[data-activa="si"] { border-color: var(--borde-vivo); color: var(--texto); }
+.pill[data-active="yes"] { border-color: var(--border-live); color: var(--text); }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   Piezas nuevas del sistema (agosto 2026). Cada clase de aquí abajo tiene
-   su componente en Piezas.tsx o Constelacion.tsx; nadie las usa a pelo.
+   New pieces of the system (August 2026). Every class down here has its
+   component in Parts.tsx or Constellation.tsx; nobody uses them raw.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* foco visible: la casa navega con teclado o no navega */
+/* visible focus: the house navigates with the keyboard or does not navigate */
 :focus-visible {
-  outline: 2px solid var(--ambar);
+  outline: 2px solid var(--amber);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* ── azulejo: el cuadrado con el logo de una marca ────────────────────── */
-.azulejo {
+/* ── tile: the square with a brand's logo ─────────────────────────────── */
+.tile {
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   background:
     radial-gradient(120% 120% at 25% 15%,
-      color-mix(in oklab, var(--tinte, var(--ambar)) 16%, transparent),
+      color-mix(in oklab, var(--tint, var(--amber)) 16%, transparent),
       transparent 72%),
-    var(--carta-alta);
-  border: 1px solid color-mix(in oklab, var(--tinte, var(--ambar)) 26%, var(--borde));
+    var(--card-high);
+  border: 1px solid color-mix(in oklab, var(--tint, var(--amber)) 26%, var(--border));
 }
-.azulejo[data-vivo="no"] {
-  background: var(--carta-alta);
-  border-color: var(--borde);
+.tile[data-live="no"] {
+  background: var(--card-high);
+  border-color: var(--border);
 }
 
-/* ── insignia y pastilla: los sellos de estado ────────────────────────── */
-.insignia, .pastilla {
+/* ── badge and capsule: the status seals ──────────────────────────────── */
+.badge, .capsule {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
   text-transform: uppercase; line-height: 1;
   white-space: nowrap;
-  color: var(--tono, var(--texto-3));
-  border: 1px solid color-mix(in oklab, var(--tono, var(--texto-3)) 40%, transparent);
-  background: color-mix(in oklab, var(--tono, var(--texto-3)) 7%, transparent);
+  color: var(--tone, var(--text-3));
+  border: 1px solid color-mix(in oklab, var(--tone, var(--text-3)) 40%, transparent);
+  background: color-mix(in oklab, var(--tone, var(--text-3)) 7%, transparent);
 }
-.insignia { padding: 4px 7px; border-radius: 3px; }
-.pastilla { padding: 5px 10px; border-radius: 999px; }
+.badge { padding: 4px 7px; border-radius: 3px; }
+.capsule { padding: 5px 10px; border-radius: 999px; }
 
-/* ── la tarjeta con tinte y con estado seleccionado ───────────────────── */
-.carta-tinte {
+/* ── the card with a tint and with a selected state ───────────────────── */
+.card-tint {
   background:
     radial-gradient(130% 100% at 0% 0%,
-      color-mix(in oklab, var(--tinte, var(--ambar)) 8%, transparent),
+      color-mix(in oklab, var(--tint, var(--amber)) 8%, transparent),
       transparent 58%),
-    var(--carta);
-  border-color: color-mix(in oklab, var(--tinte, var(--ambar)) 20%, var(--borde));
+    var(--card);
+  border-color: color-mix(in oklab, var(--tint, var(--amber)) 20%, var(--border));
 }
-.carta-sel {
+.card-selected {
   background:
     radial-gradient(140% 120% at 15% 0%,
-      color-mix(in oklab, var(--tinte, var(--ambar)) 24%, transparent),
+      color-mix(in oklab, var(--tint, var(--amber)) 24%, transparent),
       transparent 75%),
-    color-mix(in oklab, var(--tinte, var(--ambar)) 9%, var(--carta));
-  border-color: color-mix(in oklab, var(--tinte, var(--ambar)) 52%, transparent);
-  box-shadow: 0 14px 44px -20px color-mix(in oklab, var(--tinte, var(--ambar)) 55%, transparent);
+    color-mix(in oklab, var(--tint, var(--amber)) 9%, var(--card));
+  border-color: color-mix(in oklab, var(--tint, var(--amber)) 52%, transparent);
+  box-shadow: 0 14px 44px -20px color-mix(in oklab, var(--tint, var(--amber)) 55%, transparent);
 }
-.carta-sel .esq-t::before, .carta-sel .esq-t::after,
-.carta-sel .esq::before, .carta-sel .esq::after { border-color: var(--tinte, var(--ambar)); }
+.card-selected .corner-t::before, .card-selected .corner-t::after,
+.card-selected .corner::before, .card-selected .corner::after { border-color: var(--tint, var(--amber)); }
 
-/* pulsable: la tarjeta que es un enlace. Feedback al pasar y al pisar. */
-.carta-pulsable { transition: border-color .15s ease-out, background-color .15s ease-out, transform .12s ease-out; }
+/* pressable: the card that is a link. Feedback on hover and on press. */
+.card-pressable { transition: border-color .15s ease-out, background-color .15s ease-out, transform .12s ease-out; }
 @media (hover: hover) and (pointer: fine) {
-  .carta-pulsable:hover { border-color: color-mix(in oklab, var(--tinte, var(--ambar)) 45%, var(--borde)); }
+  .card-pressable:hover { border-color: color-mix(in oklab, var(--tint, var(--amber)) 45%, var(--border)); }
 }
-.carta-pulsable:active { transform: scale(.985); }
+.card-pressable:active { transform: scale(.985); }
 @media (prefers-reduced-motion: reduce) {
-  .carta-pulsable, .carta-pulsable:active { transform: none; transition: none; }
+  .card-pressable, .card-pressable:active { transform: none; transition: none; }
 }
 
-/* ── el rail de acciones: tres tarjetas con flecha ────────────────────── */
-.rail-flecha { transition: transform .15s ease-out; }
+/* ── the action rail: three cards with an arrow ───────────────────────── */
+.rail-arrow { transition: transform .15s ease-out; }
 @media (hover: hover) and (pointer: fine) {
-  a:hover > .rail-flecha, a:hover .rail-flecha { transform: translate(2px, -2px); }
+  a:hover > .rail-arrow, a:hover .rail-arrow { transform: translate(2px, -2px); }
 }
-@media (prefers-reduced-motion: reduce) { .rail-flecha { transition: none; transform: none !important; } }
+@media (prefers-reduced-motion: reduce) { .rail-arrow { transition: none; transform: none !important; } }
 
-/* ── el campo de estrellas ────────────────────────────────────────────── */
-.estrella-viva { animation: titileo 5s ease-in-out infinite; }
-@keyframes titileo {
+/* ── the star field ───────────────────────────────────────────────────── */
+.star-live { animation: twinkle 5s ease-in-out infinite; }
+@keyframes twinkle {
   0%, 100% { opacity: .18; }
   50%      { opacity: .8; }
 }
-@media (prefers-reduced-motion: reduce) { .estrella-viva { animation: none; opacity: .5; } }
+@media (prefers-reduced-motion: reduce) { .star-live { animation: none; opacity: .5; } }
 
-/* ── sin dato: el hueco honesto, en línea ─────────────────────────────── */
-.sin-dato {
+/* ── no data: the honest gap, inline ──────────────────────────────────── */
+.no-data {
   font-family: var(--mono); font-size: .85em; letter-spacing: .02em;
-  color: var(--texto-3);
-  border-bottom: 1px dashed color-mix(in oklab, var(--texto-3) 55%, transparent);
+  color: var(--text-3);
+  border-bottom: 1px dashed color-mix(in oklab, var(--text-3) 55%, transparent);
   cursor: help;
 }

@@ -37,7 +37,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       # next build generates next-env.d.ts and .next/types, which tsc reads.
       - run: npm run build
-      - run: npm run tipos
+      - run: npm run typecheck
       - run: npm test
 
   demo:
@@ -63,12 +63,12 @@ jobs:
       - name: three screens answer with synthetic data
         run: |
           set -e
-          for ruta in "" dinero actividad; do
-            code=$(curl -s -o page.html -w "%{http_code}" "http://127.0.0.1:8797/$ruta")
-            echo "/$ruta → $code"
+          for route in "" money activity; do
+            code=$(curl -s -o page.html -w "%{http_code}" "http://127.0.0.1:8797/$route")
+            echo "/$route → $code"
             test "$code" = "200"
           done
-          curl -fsS http://127.0.0.1:8797/actividad | grep -q "acme-webshop"
+          curl -fsS http://127.0.0.1:8797/activity | grep -q "acme-webshop"
       - name: non-loopback Host and forwarded requests are refused
         run: |
           test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: example.com' http://127.0.0.1:8797/)" = "403"

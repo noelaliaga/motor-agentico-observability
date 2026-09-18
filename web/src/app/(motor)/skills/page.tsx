@@ -1,165 +1,165 @@
-import { Cabecera } from "@/componentes/Cabecera";
+import { Header } from "@/components/Header";
 import {
-  Seccion, Tarjeta, Medidor, Pastilla, Insignia, Barra, num, hace, TONO_SECCION,
-} from "@/componentes/Piezas";
-import { HeroeCatalogo } from "@/componentes/piezas/HeroeCatalogo";
-import { Mosaico } from "@/componentes/piezas/Mosaico";
-import { Plegable } from "@/componentes/piezas/Plegable";
-import { InsigniaAmbito, tonoAmbito } from "@/componentes/piezas/Ambito";
-import { skills, skillsPorAmbito, masInvocado } from "@/lib/consultas";
+  Section, Panel, Gauge, Capsule, Badge, Bar, num, ago, SECTION_TONE,
+} from "@/components/Parts";
+import { CatalogHero } from "@/components/parts/CatalogHero";
+import { Mosaic } from "@/components/parts/Mosaic";
+import { Collapsible } from "@/components/parts/Collapsible";
+import { ScopeBadge, scopeTone } from "@/components/parts/Scope";
+import { skills, skillsByScope, mostInvoked } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-const AMBITO = {
-  global: "globales", proyecto: "de proyecto", hermes: "de Hermes",
+const SCOPE = {
+  global: "global", project: "project", hermes: "Hermes",
 } as Record<string, string>;
 
 export default function Skills() {
-  const todas = skills();
-  const porAmbito = skillsPorAmbito();
-  const top = masInvocado("skill", 10);
-  const usadas = todas.filter((s) => s.usos > 0);
-  const sinEstrenar = todas.length - usadas.length;
+  const all = skills();
+  const byScope = skillsByScope();
+  const top = mostInvoked("skill", 10);
+  const used = all.filter((s) => s.uses > 0);
+  const neverUsed = all.length - used.length;
   const maxTop = Math.max(...top.map((t) => t.n), 1);
-  const TONO = TONO_SECCION.skills;
+  const TONE = SECTION_TONE.skills;
 
   return (
     <>
-      <Cabecera ruta="skills" />
+      <Header path="skills" />
       <div className="flex flex-col gap-9 px-6 py-7 pb-14">
 
-        <HeroeCatalogo
-          tinte={TONO} semilla={21} insignia="skills"
-          meta={`${porAmbito.length} ámbitos · uso contado en transcripciones`}
-          cifra={num(usadas.length)}
-          resto={`de ${num(todas.length)} skills se han usado alguna vez`}
+        <CatalogHero
+          tint={TONE} seed={21} badge="skills"
+          meta={`${byScope.length} scopes · usage counted in transcripts`}
+          figure={num(used.length)}
+          rest={`of ${num(all.length)} skills have been used at some point`}
           extra={
             <>
-              <Pastilla color={TONO}>{num(usadas.length)} en activo</Pastilla>
-              <Insignia tono="neutro">{num(sinEstrenar)} sin estrenar</Insignia>
+              <Capsule color={TONE}>{num(used.length)} active</Capsule>
+              <Badge tone="neutral">{num(neverUsed)} never used</Badge>
             </>
           }
         >
-          Lo que tienes empaquetado y listo para invocar. El número que importa no es
-          cuántas hay: es cuántas han trabajado alguna vez — el resto son horas de
-          empaquetado que todavía no rinden nada.
-        </HeroeCatalogo>
+          What you have packaged and ready to invoke. The number that matters is not
+          how many there are: it is how many have ever worked; the rest are hours of
+          packaging that do not pay off yet.
+        </CatalogHero>
 
-        {/* ── la desproporción, contada con el cuerpo ─────────────────── */}
+        {/* ── the disproportion, told with its body ───────────────────── */}
         <section className="flex flex-col gap-3">
-          <Seccion epigrafe="lo empaquetado frente a lo usado" tinte={TONO}
-                   nota="Cada cuadrado es una skill instalada; encendido, una que se ha llegado a invocar."
-                   meta={`${usadas.length} de ${todas.length}`}>
-            La desproporción
-          </Seccion>
-          <Tarjeta rejilla className="grid items-center gap-7 p-6 lg:grid-cols-[auto_1fr]">
-            <Medidor
-              parte={todas.length ? usadas.length / todas.length : null}
-              etiqueta="estrenadas" color={TONO} tamano={104}
+          <Section eyebrow="packaged versus used" tint={TONE}
+                   note="Each square is an installed skill; lit, one that has actually been invoked."
+                   meta={`${used.length} of ${all.length}`}>
+            The disproportion
+          </Section>
+          <Panel dotGrid className="grid items-center gap-7 p-6 lg:grid-cols-[auto_1fr]">
+            <Gauge
+              part={all.length ? used.length / all.length : null}
+              caption="used" color={TONE} size={104}
             />
             <div className="min-w-0">
-              <Mosaico
-                total={todas.length} vivos={usadas.length} color={TONO}
-                etiqueta={`${usadas.length} skills usadas de ${todas.length} instaladas`}
+              <Mosaic
+                total={all.length} lit={used.length} color={TONE}
+                caption={`${used.length} skills used out of ${all.length} installed`}
               />
               <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11.5px]"
-                 style={{ color: "var(--texto-3)" }}>
+                 style={{ color: "var(--text-3)" }}>
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-[2px]" style={{ background: TONO }} />
-                  usada alguna vez
+                  <span className="h-2 w-2 rounded-[2px]" style={{ background: TONE }} />
+                  used at some point
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span className="h-2 w-2 rounded-[2px]" style={{ background: "rgb(255 255 255 / .06)" }} />
-                  instalada y a oscuras
+                  installed and in the dark
                 </span>
               </p>
             </div>
-          </Tarjeta>
+          </Panel>
         </section>
 
-        {/* ── las que sí trabajan ─────────────────────────────────────── */}
+        {/* ── the ones that do work ───────────────────────────────────── */}
         <section className="flex flex-col gap-3">
-          <Seccion epigrafe="las que sí trabajan" tinte={TONO}
-                   meta="invocaciones reales, no declaradas">
-            Las que más disparas
-          </Seccion>
+          <Section eyebrow="the ones that do work" tint={TONE}
+                   meta="real invocations, not declared ones">
+            The ones you fire most
+          </Section>
           <div className="grid gap-2 md:grid-cols-2">
             {top.map((s, i) => (
-              <Tarjeta key={s.nombre} tinte={i === 0 ? TONO : undefined} seleccionada={i === 0}
-                       className="flex items-center gap-3.5 px-4 py-3">
-                <span className="cifra w-6 shrink-0 text-[12px]" style={{ color: "var(--texto-3)" }}>
+              <Panel key={s.name} tint={i === 0 ? TONE : undefined} selected={i === 0}
+                     className="flex items-center gap-3.5 px-4 py-3">
+                <span className="figure w-6 shrink-0 text-[12px]" style={{ color: "var(--text-3)" }}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px]" style={{ color: "var(--texto)" }}>
-                    {s.nombre}
+                  <span className="block truncate text-[13px]" style={{ color: "var(--text)" }}>
+                    {s.name}
                   </span>
-                  <span className="rotulo">último uso {hace(s.ultimo)}</span>
+                  <span className="label">last used {ago(s.last)}</span>
                 </span>
                 <span className="hidden w-[84px] shrink-0 sm:block">
-                  <Barra parte={s.n / maxTop} color={TONO} />
+                  <Bar part={s.n / maxTop} color={TONE} />
                 </span>
-                <span className="cifra w-[52px] shrink-0 text-right text-[16px]" style={{ color: TONO }}>
+                <span className="figure w-[52px] shrink-0 text-right text-[16px]" style={{ color: TONE }}>
                   {num(s.n)}
                 </span>
-              </Tarjeta>
+              </Panel>
             ))}
           </div>
         </section>
 
-        {/* ── el catálogo, por ámbito ─────────────────────────────────── */}
-        {porAmbito.map((a) => {
-          const grupo = todas.filter((s) => s.ambito === a.ambito);
-          const vivas = grupo.filter((s) => s.usos > 0);
-          const dormidas = grupo.filter((s) => !s.usos);
-          const tono = tonoAmbito(a.ambito);
-          const fila = (s: (typeof grupo)[number]) => (
-            <div key={s.ambito + s.nombre}
+        {/* ── the catalogue, by scope ─────────────────────────────────── */}
+        {byScope.map((a) => {
+          const group = all.filter((s) => s.scope === a.scope);
+          const alive = group.filter((s) => s.uses > 0);
+          const dormant = group.filter((s) => !s.uses);
+          const tone = scopeTone(a.scope);
+          const row = (s: (typeof group)[number]) => (
+            <div key={s.scope + s.name}
                  className="flex items-baseline gap-2.5 rounded-[4px] px-3 py-2"
-                 style={{ background: s.usos ? "var(--carta)" : "transparent",
-                          border: `1px solid ${s.usos ? "var(--borde)" : "transparent"}` }}>
+                 style={{ background: s.uses ? "var(--card)" : "transparent",
+                          border: `1px solid ${s.uses ? "var(--border)" : "transparent"}` }}>
               <span className="h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{ background: s.usos ? tono : "rgb(255 255 255 / .14)" }} />
+                    style={{ background: s.uses ? tone : "rgb(255 255 255 / .14)" }} />
               <span className="min-w-0 flex-1 truncate text-[12.5px]"
-                    style={{ color: s.usos ? "var(--texto)" : "var(--texto-3)" }}>{s.nombre}</span>
-              <span className="dato text-[11px]"
-                    style={{ color: s.usos ? tono : "var(--texto-3)" }}>
-                {s.usos || "—"}
+                    style={{ color: s.uses ? "var(--text)" : "var(--text-3)" }}>{s.name}</span>
+              <span className="datum text-[11px]"
+                    style={{ color: s.uses ? tone : "var(--text-3)" }}>
+                {s.uses || "—"}
               </span>
             </div>
           );
           return (
-            <section key={a.ambito} className="flex flex-col gap-3">
-              <Seccion insignia={<InsigniaAmbito ambito={a.ambito} />} tinte={tono}
-                       meta={<p className="rotulo">
-                         <span style={{ color: tono }}>{a.usadas}</span> de {a.total} usadas
+            <section key={a.scope} className="flex flex-col gap-3">
+              <Section badge={<ScopeBadge scope={a.scope} />} tint={tone}
+                       meta={<p className="label">
+                         <span style={{ color: tone }}>{a.used}</span> of {a.total} used
                        </p>}>
-                Skills {AMBITO[a.ambito] ?? `de ${a.ambito}`}
-              </Seccion>
-              <Barra parte={a.total ? a.usadas / a.total : 0} color={tono} />
-              {vivas.length ? (
+                {SCOPE[a.scope] ?? a.scope} skills
+              </Section>
+              <Bar part={a.total ? a.used / a.total : 0} color={tone} />
+              {alive.length ? (
                 <div className="grid gap-1.5 md:grid-cols-2 xl:grid-cols-3">
-                  {vivas.map(fila)}
+                  {alive.map(row)}
                 </div>
               ) : null}
-              {dormidas.length ? (
-                <Plegable
-                  cerrado={`ver las ${num(dormidas.length)} sin estrenar`}
-                  abierto={`plegar las ${num(dormidas.length)} sin estrenar`}
+              {dormant.length ? (
+                <Collapsible
+                  closed={`see the ${num(dormant.length)} never used`}
+                  open={`fold the ${num(dormant.length)} never used`}
                 >
                   <div className="grid gap-1.5 md:grid-cols-2 xl:grid-cols-3">
-                    {dormidas.map(fila)}
+                    {dormant.map(row)}
                   </div>
-                </Plegable>
+                </Collapsible>
               ) : null}
             </section>
           );
         })}
 
-        <p className="max-w-[720px] text-[11.5px] leading-relaxed" style={{ color: "var(--texto-3)" }}>
-          El uso sale de contar las invocaciones reales en tus transcripciones y el{" "}
-          <span className="dato">use_count</span> que guarda Hermes. Una skill perfectamente
-          escrita que nunca se invocó aparece a cero, porque a cero es como está rindiendo.
+        <p className="max-w-[720px] text-[11.5px] leading-relaxed" style={{ color: "var(--text-3)" }}>
+          Usage comes from counting the real invocations in your transcripts and the{" "}
+          <span className="datum">use_count</span> Hermes stores. A perfectly written skill
+          that was never invoked shows as zero, because zero is what it is yielding.
         </p>
       </div>
     </>

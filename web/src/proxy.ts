@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { peticionLocal } from "./lib/loopback";
+import { isLocalRequest } from "./lib/loopback";
 
 /**
  * Exposure guard — a second lock, not the boundary.
@@ -21,7 +21,7 @@ import { peticionLocal } from "./lib/loopback";
  * (Next.js 16 renamed `middleware.ts` to `proxy.ts`; the behaviour is the same.)
  */
 export function proxy(request: NextRequest) {
-  if (!peticionLocal(request.headers)) {
+  if (!isLocalRequest(request.headers)) {
     return new NextResponse("403 · this dashboard only answers direct requests on 127.0.0.1 / localhost", {
       status: 403,
       headers: { "content-type": "text/plain; charset=utf-8" },

@@ -1,27 +1,27 @@
-import { Barra } from "@/componentes/Barra";
-import { salud } from "@/lib/consultas";
-import { NOMBRE_FUENTE } from "@/componentes/Marcas";
+import { Sidebar } from "@/components/Sidebar";
+import { health } from "@/lib/queries";
+import { SOURCE_NAME } from "@/components/Brands";
 
 export const dynamic = "force-dynamic";
 
-const MAQUINAS = ["claude_code", "codex", "hermes", "openclaw", "openrouter"];
+const MACHINES = ["claude_code", "codex", "hermes", "openclaw", "openrouter"];
 
 export default function MotorLayout({ children }: { children: React.ReactNode }) {
-  const s = salud();
-  const maquinas = MAQUINAS.map((id) => {
-    const f = s.find((x) => x.fuente === id);
+  const s = health();
+  const machines = MACHINES.map((id) => {
+    const f = s.find((x) => x.source === id);
     return {
       id,
-      nombre: NOMBRE_FUENTE[id] ?? id,
-      // Viva = la última pasada terminó sin error. Que una fuente no sepa su
-      // gasto (Hermes, OpenClaw) NO la hace estar caída: son dos hechos
-      // distintos y mezclarlos pintaba de gris cosas que funcionan.
-      ok: Boolean(f?.ultima_ok) && !f?.error,
+      name: SOURCE_NAME[id] ?? id,
+      // Alive = the last pass ended without an error. A source not knowing its
+      // spend (Hermes, OpenClaw) does NOT make it down: they are two different
+      // facts and mixing them up painted grey things that work.
+      ok: Boolean(f?.last_ok) && !f?.error,
     };
   });
   return (
     <div className="min-h-dvh">
-      <Barra maquinas={maquinas} />
+      <Sidebar machines={machines} />
       <main className="md:pl-[236px]">{children}</main>
     </div>
   );
