@@ -15,7 +15,7 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
 
-# Nothing to package: the reader runs as scripts (`python3 lector/lector.py`).
+# Nothing to package: the reader runs as scripts (`python3 reader/reader.py`).
 # Declaring no packages stops setuptools from auto-discovering web/, demo/…
 # so `pip install -e ".[dev]"` only installs the dev tools.
 [tool.setuptools]
@@ -30,13 +30,13 @@ addopts = "-q --basetemp=.pytest_tmp"
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-src = ["lector", "demo", "tests"]
+src = ["reader", "demo", "tests"]
 extend-exclude = ["web", ".venv", "data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
-# The code keeps Spanish identifiers and aligned tables; these rules fight that
-# style without catching bugs.
+# The code keeps aligned tables; these rules fight that style without catching
+# bugs.
 ignore = [
   "E731",   # lambda assignments in small lookup helpers
   "B905",   # zip() without strict= (Python 3.11 target)
@@ -45,8 +45,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # sys.path is set before importing the sibling modules, on purpose.
-"lector/*.py" = ["E402"]
+"reader/*.py" = ["E402"]
 "tests/*.py" = ["E402"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["comun", "lector", "tarifas", "detectores", "habitos", "conversaciones", "sonar", "fuentes"]
+known-first-party = ["common", "reader", "pricing", "detectors", "habits", "conversations", "review", "sources"]

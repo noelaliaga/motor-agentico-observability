@@ -1,11 +1,11 @@
-# datos: la base y la home sintética se generan, nunca se versionan
+# data: the database and the synthetic home are generated, never versioned
 data/
 *.sqlite
 *.sqlite-*
 *.log
 registro/
 
-# entorno
+# environment
 .env
 .env.*
 !.env.example
@@ -28,5 +28,5 @@ web/next-env.d.ts
 .pytest_tmp/
 .tmp-test-*/
 web/.tmp-test-*/
-.chrome-capturas*/
-tests/_casa_inexistente/
+.chrome-screenshots*/
+tests/_missing_home/
