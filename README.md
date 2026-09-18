@@ -84,7 +84,10 @@ flowchart LR
   in `reader/sources/`; a failing source rolls back, records the error in
   `health` and does not stop the others.
 - **Schema** (`reader/schema.sql`): 18 tables in one file, plus additive
-  migrations for databases created by older versions.
+  migrations for new columns. **Breaking change in this version:** tables,
+  columns, `MOTOR_*` variables and the launchd log were renamed to English, so a
+  `motor.sqlite` from an earlier checkout is not migrated. Start from a fresh
+  database; the reader rebuilds it from the transcripts still on disk.
 - **Web** (`web/`, Next.js 16, React 19, Tailwind v4). Server components only,
   no API routes, no server actions, no database driver: `node:sqlite` opened
   read-only, plus `PRAGMA query_only = ON` checked at startup as a second lock.
@@ -192,7 +195,7 @@ evidence; "sustained use" means it kept running in practice.
 |---|---|---|---|
 | Claude Code ingestion (usage, prompts, tool invocations) | **Demonstrated** | Roughly 23,000 usage rows between 18 Jul 2026 and the cut-off; reader loop running continuously since 31 Aug with no tracebacks in its log | **Yes** |
 | Dedup by `ref UNIQUE` (the ×2.3) | **Demonstrated** | 6,948 of 11,286 lines were repeats (≈ ×2.6 lines per message); the hand-made spend figure was ×2.3 too high. *Illustrated*, not reproduced, by the demo: its generator deliberately writes ~2.3 lines per message and the reader keeps one row per message (`tests/test_claude_code.py`) | Yes, implicit in the whole series |
-| Re-read on rotation (inode) | **Implemented and tested** | `tests/test_cola.py` and the rotation step in `make demo`. No logged rotation event in real use | — |
+| Re-read on rotation (inode) | **Implemented and tested** | `tests/test_tail.py` and the rotation step in `make demo`. No logged rotation event in real use | — |
 | Codex ingestion | **Demonstrated** | about 1,100 usage rows from mid-July to mid-September; no Codex use after that, not a failure | Yes, while Codex was in use |
 | Hermes Agent: sessions and skill usage | **Demonstrated** | Session count matched Hermes' own `state.db` | Yes (re-reads all its rows every pass; not incremental) |
 | Hermes / OpenClaw token spend | **Not available** | Those tools do not record tokens; shown as "no data" with the reason | — |
@@ -295,8 +298,9 @@ Code, UI and docs are in English. Two names are kept as they are: the product
 name, **Motor Agéntico** (Spanish for "agentic engine", hence the `MOTOR_*`
 variables and `motor.sqlite`), and **multiverso**, the name of the external
 project its optional source reads. The nightly review's LLM prompts in
-`reader/review.py` are deliberately still in Spanish, so the notes it writes
-keep their language; see the comment there.
+`reader/review.py` are deliberately still in Spanish (see the comment there).
+The facts they receive are now in English; how that mix affects the notes has
+not been checked against a live model yet.
 
 ## Credits and third parties
 

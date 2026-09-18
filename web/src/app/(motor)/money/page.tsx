@@ -72,7 +72,7 @@ export default async function Money({
                  note={`${usd(feeMonth, 0)}/month prorated to the window`} /></Card>
           <Card className="p-5"><Figure label="roi" tone="saving" size={32}
                  value={roi ? `×${roi.toLocaleString("en-US", { maximumFractionDigits: 1 })}` : "—"}
-                 note="what you get for every euro of fee" /></Card>
+                 note="what you get for every dollar of fee" /></Card>
           <Card className="p-5"><Figure label="real money" value={usd(real.reduce((s, x) => Math.max(s, x.usd), 0))}
                  tone="alert" size={32} note="OpenRouter · really billed" /></Card>
         </div>
