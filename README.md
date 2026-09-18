@@ -13,7 +13,7 @@ in which SQL finds the facts and an LLM is only allowed to phrase them.
 > **Do not deploy it.** It has no authentication by design, reads your local
 > transcripts and only answers on `127.0.0.1`.
 
-![Home screen, synthetic data](docs/capturas/inicio.png)
+![Home screen, synthetic data](docs/screenshots/home.png)
 <sub>All screenshots are taken from `make demo`: invented projects, example.com addresses, generated numbers.</sub>
 
 ---
@@ -39,21 +39,21 @@ SQLite, and never writes anywhere else.
 | Screen | Question it answers |
 |---|---|
 | **Home** | last night's review · spend vs subscription · how to spend less · what runs unattended |
-| **Money** (`/dinero`) | by model, day, project and tool · cache savings · the auditable price table |
-| **Tools** (`/herramientas`) | each agent, what the tool can and cannot know about its spend |
-| **Connections** (`/conexiones`) | Claude connectors and MCP servers *declared*, crossed with real invocations |
-| **Skills** / **Inventory** (`/skills`, `/inventario`) | installed vs actually invoked |
-| **Activity** (`/actividad`) | every session and its cost · timeline of prompts |
-| **Memory** (`/memoria`) | freshness of memory notes, `[[link]]` graph, broken links counted apart |
-| **Nightly review** (`/sueno`) | findings with their evidence and a copy-paste prompt |
-| **Hermes · OpenClaw** (`/maquinas/hermes`, `/maquinas/openclaw`) | per-agent boards from their own config and state |
+| **Money** (`/money`) | by model, day, project and tool · cache savings · the auditable price table |
+| **Tools** (`/tools`) | each agent, what the tool can and cannot know about its spend |
+| **Connections** (`/connections`) | Claude connectors and MCP servers *declared*, crossed with real invocations |
+| **Skills** / **Inventory** (`/skills`, `/inventory`) | installed vs actually invoked |
+| **Activity** (`/activity`) | every session and its cost · timeline of prompts |
+| **Memory** (`/memory`) | freshness of memory notes, `[[link]]` graph, broken links counted apart |
+| **Nightly review** (`/review`) | findings with their evidence and a copy-paste prompt |
+| **Hermes · OpenClaw** (`/machines/hermes`, `/machines/openclaw`) | per-agent boards from their own config and state |
 
 | | |
 |---|---|
-| ![Money](docs/capturas/dinero.png) | ![Nightly review](docs/capturas/sueno.png) |
-| ![Activity](docs/capturas/actividad.png) | ![Memory](docs/capturas/memoria.png) |
+| ![Money](docs/screenshots/money.png) | ![Nightly review](docs/screenshots/review.png) |
+| ![Activity](docs/screenshots/activity.png) | ![Memory](docs/screenshots/memory.png) |
 
-All eleven screens are in [`docs/capturas/`](docs/capturas/) (regenerate with `make capturas` while `make demo` is running).
+All eleven screens are in [`docs/screenshots/`](docs/screenshots/) (regenerate with `make screenshots` while `make demo` is running).
 
 ## Architecture
 
@@ -67,23 +67,23 @@ flowchart LR
     CFG["~/.claude.json · .mcp.json · LaunchAgents"]
   end
   OR[("OpenRouter API<br/>only with a key")]
-  CC & CX & HM & MEM & CFG -->|"byte offset + inode"| L["lector.py<br/>loop every 2 s"]
+  CC & CX & HM & MEM & CFG -->|"byte offset + inode"| L["reader.py<br/>loop every 2 s"]
   OR -->|"every 5 min"| L
   L -->|"INSERT OR IGNORE · ref UNIQUE"| DB[("motor.sqlite<br/>tokens, not dollars")]
-  T["tarifas: price per model<br/>with valid-from / valid-to"] --> DB
+  T["pricing: price per model<br/>with valid-from / valid-to"] --> DB
   DB -->|"node:sqlite readOnly + query_only"| W["Next.js 16 · bound to 127.0.0.1<br/>proxy.ts: 403 if Host or forwarded-for ≠ loopback"]
   subgraph review["Nightly review (launchd 07:00)"]
-    D["detectores.py · pure SQL"] --> R["claude -p, no tools / MCP / settings<br/>only phrases the facts"]
+    D["detectors.py · pure SQL"] --> R["claude -p, no tools / MCP / settings<br/>only phrases the facts"]
   end
   DB --> D
   R -->|"notes + evidence"| DB
 ```
 
-- **Reader** (`lector/`, Python 3.11+, standard library only). The only
+- **Reader** (`reader/`, Python 3.11+, standard library only). The only
   component that writes, and only to its own database. One module per source
-  in `lector/fuentes/`; a failing source rolls back, records the error in
-  `salud` and does not stop the others.
-- **Schema** (`lector/esquema.sql`): 18 tables in one file, plus additive
+  in `reader/sources/`; a failing source rolls back, records the error in
+  `health` and does not stop the others.
+- **Schema** (`reader/schema.sql`): 18 tables in one file, plus additive
   migrations for databases created by older versions.
 - **Web** (`web/`, Next.js 16, React 19, Tailwind v4). Server components only,
   no API routes, no server actions, no database driver: `node:sqlite` opened
@@ -96,8 +96,8 @@ flowchart LR
   are client-controlled, so a proxy that rewrites `Host` and strips those
   headers, or a LAN client forging `Host: localhost` against `-H 0.0.0.0`,
   would get through. It is not authentication.
-- **Nightly review** (`lector/sonar.py`). Detectors are SQL
-  (`detectores.py`, `habitos.py`); the model receives computed facts and runs
+- **Nightly review** (`reader/review.py`). Detectors are SQL
+  (`detectors.py`, `habits.py`); the model receives computed facts and runs
   with `--tools ""`, `--strict-mcp-config`, `--setting-sources ""` and an empty
   working directory: no built-in tools, no MCP servers, no user hooks or
   `CLAUDE.md`. Its output is only stored as text. The facts contain untrusted
@@ -120,7 +120,7 @@ Full reasoning, written while building it: [`docs/DECISIONS.md`](docs/DECISIONS.
    the middle, silently.
 4. **Store tokens, compute money at read time** against prices with validity
    dates and a source. Unknown price → `NULL`, never `0`.
-5. **`error` and `nota` are different columns**: "Hermes does not record
+5. **`error` and `note` are different columns**: "Hermes does not record
    tokens" is a caveat, not an outage.
 6. **`ref UNIQUE` caught a ×2.3 spend overcount** (see Lessons).
 7. **No text box that sends anything**: read-only as a property, not a promise.
@@ -137,11 +137,11 @@ Tested locally with Python 3.14 and Node 26 on macOS, including from a clean
 clone; CI is configured for Python 3.11/3.12 and Node 22 on Ubuntu.
 
 ```bash
-make demo      # synthetic home → 2 reader passes (with a file rotation) → review --seco → web
+make demo      # synthetic home → 2 reader passes (with a file rotation) → review --dry-run → web
                # open http://127.0.0.1:8797
 make test      # pytest + ruff + node:test + tsc (creates .venv with pytest and ruff)
-make demo-datos  # only the synthetic data and the reader passes, no web
-make limpiar     # delete data/, .pytest_tmp and web/.next
+make demo-data  # only the synthetic data and the reader passes, no web
+make clean      # delete data/, .pytest_tmp and web/.next
 ```
 
 With npm 11, `npm ci` may warn that `sharp` has unapproved install scripts.
@@ -149,20 +149,20 @@ It is harmless here: `sharp` comes with Next.js for `next/image`, which this
 dashboard does not use.
 
 `make demo` never looks at your real home: the Makefile sets **every** source
-path (`MOTOR_CASA`, `MOTOR_CLAUDE`, `MOTOR_CLAUDE_JSON`, `MOTOR_CODEX`,
+path (`MOTOR_HOME`, `MOTOR_CLAUDE`, `MOTOR_CLAUDE_JSON`, `MOTOR_CODEX`,
 `MOTOR_HERMES`, `MOTOR_OPENCLAW`, `MOTOR_LAUNCHAGENTS`, …) inside `data/demo/`,
 so values exported in your shell profile cannot leak in, and
-`demo/comprobar_entorno.py` aborts the demo if any resolved path falls outside
+`demo/check_env.py` aborts the demo if any resolved path falls outside
 it. `launchctl`/`hermes` commands are disabled, OpenRouter keys and the CLI
-overrides are unset, and the review runs in dry mode (`--seco`), so **nothing
+overrides are unset, and the review runs in dry mode (`--dry-run`), so **nothing
 is sent anywhere**. It uses port 8797 so it cannot be confused with an instance
 on real data (default 8796).
 
 On your own data:
 
 ```bash
-python3 lector/lector.py --bucle     # or ./arrancar.sh for reader + web together
-python3 lector/sonar.py --seco       # findings only: no LLM, no network
+python3 reader/reader.py --loop      # or ./start.sh for reader + web together
+python3 reader/review.py --dry-run   # findings only: no LLM, no network
 ```
 
 Configuration is environment variables only — see [`.env.example`](.env.example)
@@ -176,9 +176,9 @@ survives a reboot there are launchd templates in [`launchd/`](launchd/)
 |---|---|
 | Reader, all sources except OpenRouter | No. Files are read; other programs' databases are opened `mode=ro` |
 | OpenRouter source | Calls `openrouter.ai` with **your** key, only if `OPENROUTER_API_KEY` is set |
-| Nightly review with `--seco` | No LLM call, and its reader pre-pass skips OpenRouter. The pre-pass still runs list-only local commands (`launchctl list`, `hermes cron list`); disable them with `MOTOR_CRON_COMANDOS=0` |
-| Nightly review without `--seco` | **Yes.** The pre-pass may query OpenRouter if a key is set, and the facts of each finding go to Anthropic via `claude -p`. Facts can include the start of a prompt, memory note titles and project names |
-| `MOTOR_SUENO_LEE=1` (off by default) | **Yes.** Excerpts of the last 24 h of conversations, to look for patterns |
+| Nightly review with `--dry-run` | No LLM call, and its reader pre-pass skips OpenRouter. The pre-pass still runs list-only local commands (`launchctl list`, `hermes cron list`); disable them with `MOTOR_CRON_COMMANDS=0` |
+| Nightly review without `--dry-run` | **Yes.** The pre-pass may query OpenRouter if a key is set, and the facts of each finding go to Anthropic via `claude -p`. Facts can include the start of a prompt, memory note titles and project names |
+| `MOTOR_REVIEW_READS=1` (off by default) | **Yes.** Excerpts of the last 24 h of conversations, to look for patterns |
 | Web | No. Read-only, loopback only |
 
 ## Honest status
@@ -200,10 +200,10 @@ evidence; "sustained use" means it kept running in practice.
 | OpenRouter per-model breakdown | **Not demonstrated** | Needs a management key that was never configured | — |
 | Web dashboard, read-only (11 screens) | **Demonstrated** | Dev server (`next dev`) kept running on `127.0.0.1` since 23 Aug. Production build (`next build && next start`) verified on synthetic data for this repo | Yes (dev server) |
 | Nightly review: SQL detectors + LLM phrasing | **Demonstrated** | ~85 notes over 19 days; total LLM cost of the review ≈ $3.22; two failed runs visible in its log; a few missed days when the laptop was asleep. The stricter no-tools flags in this repo are not yet exercised against the real CLI | **Yes** |
-| Review notes that quote the user, verified quote | **Demonstrated** (weaker check) | In real use only the first 60 characters of the quote were checked. This repo checks the whole quote (`tests/test_sonar.py`), a stricter version not yet run on real data | Yes (this is the mode that sends prompt excerpts; now off by default) |
-| "Recommendations applied" | **Not demonstrated** | No note was ever marked applied. `resuelta` is set automatically when the condition stops holding ("no longer holds" on screen) | — |
+| Review notes that quote the user, verified quote | **Demonstrated** (weaker check) | In real use only the first 60 characters of the quote were checked. This repo checks the whole quote (`tests/test_review.py`), a stricter version not yet run on real data | Yes (this is the mode that sends prompt excerpts; now off by default) |
+| "Recommendations applied" | **Not demonstrated** | No note was ever marked applied. `resolved` is set automatically when the condition stops holding ("no longer holds" on screen) | — |
 | Functional health check of agents | **Not demonstrated** | See Limits | — |
-| Portability to another machine | **Implemented; verified locally** | All paths via `MOTOR_*`; `make test` and `make demo` pass from a clean clone on macOS. The Ubuntu CI workflow is configured but has not run yet (no remote) | — |
+| Portability to another machine | **Implemented; verified locally** | All paths via `MOTOR_*`; `make test` and `make demo` pass from a clean clone on macOS, and the Ubuntu CI workflow passes on GitHub | — |
 
 ## Limits
 
@@ -215,14 +215,14 @@ evidence; "sustained use" means it kept running in practice.
   tool measured was green.
 - **Hermes and OpenClaw do not record tokens**, so their spend is shown empty;
   their real cost is inside the OpenRouter total.
-- **`resuelta` is automatic.** It means "the condition is gone", not "someone
+- **`resolved` is automatic.** It means "the condition is gone", not "someone
   followed the advice". The tool cannot know why.
 - **Prices are a hand-maintained table** with a source and a date; OpenAI
   prices are marked unverified. Valid-from dates before the first known price
   change (`2026-01-01`) are a placeholder, not the real launch date. A model
   without a price is counted apart.
 - **Subscriptions are example values** (`Plan A`, `Plan B`, 20 USD each) in
-  `lector/tarifas.py`; put your own there.
+  `reader/pricing.py`; put your own there.
 - **Declared ≠ working** for connections too: a Claude connector is listed
   because `~/.claude.json` says it was connected at some point.
 - **Sanitised display.** MCP URLs keep only scheme, host and path (query
@@ -259,7 +259,7 @@ deliberately does not do. The UI now says "declared" instead of implying
 - `tests/` (pytest, 39 tests, no network, no real home): incremental reading
   (offset, half-written line, rotation by inode, truncation, independent
   cursors), dedup and the new-rows counter, cost with the price in force vs
-  expired vs unknown, `error` vs `nota`, a crashing source not stopping the
+  expired vs unknown, `error` vs `note`, a crashing source not stopping the
   others, migrating an old database, the 18-table schema, the review with
   `subprocess` mocked (invented quote and real-prefix/invented-tail quote
   discarded, fenced JSON, no-tools flags and empty working directory,
@@ -267,11 +267,11 @@ deliberately does not do. The UI now says "declared" instead of implying
   OpenRouter), and privacy checks (MCP env variable names and URL secrets never
   stored, LaunchAgent arguments dropped, Hermes session keys hashed, no account
   email, no absolute home paths, the demo guard flags paths outside `data/demo`).
-- `web/tests/` (`node:test`): `base.ts` rejects `INSERT`/`DELETE`/`DROP`/`CREATE TEMP`
+- `web/tests/` (`node:test`): `db.ts` rejects `INSERT`/`DELETE`/`DROP`/`CREATE TEMP`
   with a read-only error and has `query_only` on; loopback host detection and
   forwarding-header checks (Next's own loopback values pass, remote ones fail)
   used by the 403 guard.
-- `.github/workflows/ci.yml` (configured, not yet run on GitHub): ruff + pytest
+- `.github/workflows/ci.yml` (runs on every push and pull request): ruff + pytest
   (3.11, 3.12); `npm ci`, `next build` (generates the route types), `tsc`,
   node tests; and a job that runs `make demo` and `curl`s three screens plus a
   spoofed `Host` and a remote `X-Forwarded-For`, both expecting 403.
@@ -279,8 +279,8 @@ deliberately does not do. The UI now says "declared" instead of implying
 ## Repository layout
 
 ```
-lector/            reader, schema, pricing, nightly review (Python, stdlib)
-  fuentes/         one module per source
+reader/            reader, schema, pricing, nightly review (Python, stdlib)
+  sources/         one module per source
 web/               Next.js dashboard (read-only)
 demo/              synthetic home generator
 tests/             pytest suite
@@ -289,37 +289,14 @@ launchd/           plist templates (__REPO__, __HOME__, __PYTHON__ placeholders)
 scripts/           headless-Chrome screenshots of the demo
 ```
 
-## Glossary (Spanish identifiers → English)
+## Naming
 
-The code and UI are in Spanish; the identifiers are kept as they were written.
-
-| Spanish | English |
-|---|---|
-| motor agéntico | agentic engine (the whole tool) |
-| lector | reader (the ingestion process) |
-| fuentes / fuente | sources / source |
-| base | database |
-| uso | usage (one model turn) |
-| tarifas | pricing table |
-| desde / hasta | valid from / valid to |
-| procedencia | source of a figure |
-| sesiones · prompts · invocaciones | sessions · prompts · tool invocations |
-| inventario | inventory (declared agents, skills, MCP, plugins) |
-| memoria · enlaces | memory notes · links |
-| salud · error · nota | health · error · caveat |
-| lectura · Cola | read cursor · incremental tail reader |
-| sueño / sonar | nightly review / to run the review |
-| detectores · hábitos · hallazgo | detectors · habits · finding |
-| huella | fingerprint of a finding (dedup key) |
-| resuelta | "no longer holds" (set automatically) |
-| --seco | dry run (no LLM) |
-| gasto real | real money spent |
-| suscripciones | subscriptions |
-| conexiones · conector | connections · connector |
-| programado | scheduled jobs |
-| topes | rate-limit rejections |
-| casa · usuario | home directory · user name |
-| corta | shorten a path to `~/…` |
+Code, UI and docs are in English. Two names are kept as they are: the product
+name, **Motor Agéntico** (Spanish for "agentic engine", hence the `MOTOR_*`
+variables and `motor.sqlite`), and **multiverso**, the name of the external
+project its optional source reads. The nightly review's LLM prompts in
+`reader/review.py` are deliberately still in Spanish, so the notes it writes
+keep their language; see the comment there.
 
 ## Credits and third parties
 
@@ -330,12 +307,12 @@ The code and UI are in Spanish; the identifiers are kept as they were written.
   **[Model Context Protocol](https://modelcontextprotocol.io)** specification.
 - Built with **Next.js**, **React** and **Tailwind CSS** (MIT). Anthropic
   prices were copied from the model table in Claude Code's `claude-api` skill
-  (cached 2026-06-24), as noted in `lector/tarifas.py`, not from the public
+  (cached 2026-06-24), as noted in `reader/pricing.py`, not from the public
   pricing page; OpenAI prices are unverified.
 - The optional `multiverso` source reads an index produced by the author's
   public `multiverso-context-engine` project; it is off unless
   `MOTOR_MULTIVERSO` is set.
-- Brand icons in `web/src/componentes/Marcas.tsx` are simplified hand-drawn
+- Brand icons in `web/src/components/Brands.tsx` are simplified hand-drawn
   glyphs used only to label where a number comes from; trademarks belong to
   their owners.
 - The private original also has a **Remotion** video pipeline; it is not

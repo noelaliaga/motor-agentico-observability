@@ -31,26 +31,26 @@ offsets every 2 s (passes of ~200 ms) and **the lag always on screen**
 
 If a file rotates, the path stays the same but the content is new. Without
 comparing the inode, the reader would `seek()` into the middle of a new file
-and read garbage **silently**. (Covered by `tests/test_cola.py`.)
+and read garbage **silently**. (Covered by `tests/test_tail.py`.)
 
 ## 4 · Facts, not conclusions
 
 Tokens go to the database; money is computed at read time. Prices carry
-`desde`/`hasta` (valid from/to) and `procedencia` (source). A money figure
+`valid_from`/`valid_to` and a `provenance` (source). A money figure
 without a source is an opinion. A model without a known price sums `NULL`,
 never `0`, and the UI says "no price".
 
-## 5 · `error` and `nota` are different columns
+## 5 · `error` and `note` are different columns
 
 This came from a real bug: "Hermes does not record tokens" was stored as an
 error, and the sidebar painted Hermes, OpenClaw and OpenRouter grey as if they
 were down. **A dashboard that calls a live thing dead lies just like one that
-invents numbers.** Now `error` means something failed; `nota` is a caveat about
+invents numbers.** Now `error` means something failed; `note` is a caveat about
 something that worked.
 
 ## 6 · The bug the design itself caught
 
-`uso.ref UNIQUE` (the message id) revealed that Claude Code writes **one JSONL
+`usage.ref UNIQUE` (the message id) revealed that Claude Code writes **one JSONL
 line per content block**, each carrying the same `usage` object: 6,948 of
 11,286 lines were repeats (about ×2.6 lines per message). The author's previous
 hand-made calculation summed all of them and its **spend figure came out ×2.3
@@ -98,7 +98,7 @@ apart as broken. A line into nothing would be inventing half the graph.
   so screenshots do not leak a username. No reading of other apps' `.env`
   files: the OpenRouter key is taken from the process environment only.
 - **The nightly review's privacy**: conversation reading is behind
-  `MOTOR_SUENO_LEE=1` (off by default); `--seco` (dry run) sends nothing and is
+  `MOTOR_REVIEW_READS=1` (off by default); `--dry-run` sends nothing and is
   what the demo uses. The original README claimed "not a single byte leaves the
   machine", which was false once the review called an LLM.
 - **Exposure guard**: `src/proxy.ts` answers 403 to any non-loopback `Host`.
